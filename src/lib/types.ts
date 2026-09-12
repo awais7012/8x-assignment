@@ -51,24 +51,3 @@ export interface QuizQuestion {
   ambient: ArtVariant;
   options: QuizOption[];
 }
-
-export interface StudioModeHint {
-  label: string;
-}
-
-export interface StudioMode {
-  id: string;
-  label: string;
-  hints: StudioModeHint[];
-  promptLabel: string;
-  promptPlaceholder: string;
-  emptyError: string;
-  result: string;
-}
-
-export interface Clip {
-  id: string;
-  caption: string;
-  art: ArtVariant;
-  duration: string;
-}

@@ -16,13 +16,3 @@ export const primaryNav: NavItem[] = [
 ];
 
 export const studioNavExtra: NavItem = { label: "Assets", href: "/assets" };
-
-export const studioSubNav = [
-  { label: "Create Video", href: "/ai/video" },
-  { label: "Edit Video", href: "/ai/video/edit" },
-  { label: "Motion Control", href: "/ai/video/motion-control" },
-];
-
-export const workspaceTabs = ["History", "Motion Library", "How it works"] as const;
-
-export type WorkspaceTab = (typeof workspaceTabs)[number];
