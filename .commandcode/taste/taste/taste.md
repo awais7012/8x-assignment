@@ -1,0 +1,12 @@
+# Taste
+- Prioritizes scope discipline over feature count: build only what the spec calls for, do not gold-plate, and prefer a smaller set of things that fully work. Confidence: 0.7
+- Prefers the simplest mechanism that solves the problem — e.g. a plain switch/conditional over an ML classifier or knowledge graph; adding inference or extra machinery for a simple, categorical problem is treated as a scope trap. Confidence: 0.65
+- Expects simulated or degraded functionality to be honestly labeled in the UI (e.g. "sample output — live generation runs on limited capacity"); silently passing off canned output as real is unacceptable. Confidence: 0.65
+- Prefers one full-stack app (Next.js App Router + API routes/server actions) over introducing separate backend services or extra infrastructure. Confidence: 0.6
+- Expects external facts (API free-tier limits, provider capabilities) to be re-verified at build time rather than trusting numbers written earlier in a doc, and expects the same for the agent's own tooling — look up whether a hook/mechanism exists before answering or falling back to a manual workaround; guessing is not acceptable. Confidence: 0.55
+- Wants commits authored under the user's own git identity/account, with no bot or assistant name appearing in the commit. Confidence: 0.9
+- Wants a commit for every change / work done on branches rather than leaving changes uncommitted. Confidence: 0.75
+- Wants full, professional commit messages. Confidence: 0.7
+- Prefers automation that fires on its own over manual steps: if a step requires the user to remember to run it, the approach is considered wrong. Confidence: 0.6
+- Values raw, unedited records over tidy ones: do not edit, summarize, or delete entries after the fact, and keep dead ends, wrong turns, and failed attempts rather than cleaning them up. Confidence: 0.6
+- Never fabricate evidence to complete a deliverable — when required data (e.g. test/canary output) is missing, report the gap explicitly instead of inventing it. Confidence: 0.6
