@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String        @id // Clerk user id
+  email          String        @unique
+  createdAt      DateTime      @default(now())
+  profile        UserProfile?
+  generations    Generation[]
+  creditsBalance Int           @default(50) // cosmetic starting balance
+}
+
+model UserProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageContext String // "personal" | "team"
+  goal         String // "avatars" | "films" | "exploring" | "marketing" | "ugc" | "automation"
+  experience   String?
+  createdAt    DateTime @default(now())
+}
+
+model Generation {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String // "image" | "video"
+  prompt      String
+  refImageUrl String?
+  resultUrl   String?
+  status      String // "queued" | "processing" | "complete" | "failed" | "quota_exceeded"
+  provider    String // which backend actually served it, for transparency/debugging
+  creditsCost Int
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
