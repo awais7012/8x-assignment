@@ -13,6 +13,7 @@ model User {
   createdAt      DateTime      @default(now())
   profile        UserProfile?
   generations    Generation[]
+  purchases      Purchase[]
   creditsBalance Int           @default(50) // cosmetic starting balance
 }
 
@@ -38,6 +39,23 @@ model Generation {
   provider    String // which backend actually served it, for transparency/debugging
   creditsCost Int
   createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Purchase {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId   String
+  credits  Int
+  // Recorded in cents so it can be reconciled against the Stripe amount.
+  amountCents Int
+  currency    String @default("usd")
+  // The Stripe Checkout Session id. Unique so a retried webhook can never
+  // grant the same purchase twice - this is the idempotency boundary.
+  stripeSessionId String   @unique
+  createdAt       DateTime @default(now())
 
   @@index([userId, createdAt])
 }

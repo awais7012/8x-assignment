@@ -11,3 +11,8 @@
 - Prefers automation that fires on its own over manual steps: if a step requires the user to remember to run it, the approach is considered wrong. Confidence: 0.6
 - Values raw, unedited records over tidy ones: do not edit, summarize, or delete entries after the fact, and keep dead ends, wrong turns, and failed attempts rather than cleaning them up. Confidence: 0.6
 - Never fabricate evidence to complete a deliverable — when required data (e.g. test/canary output) is missing, report the gap explicitly instead of inventing it. Confidence: 0.6
+- Wants work reported item-by-item as each step is completed, with the actual verification output (status codes, command output, screenshot references) — not a single batched summary at the end, and not just "done." Confidence: 0.85
+- Expects every step to be confirmed as actually having taken effect before moving on — not merely that the command exited 0; for a rotation/replacement, prove the old thing now fails, not just that the new one works. Confidence: 0.7
+- Never lets secret material (API keys, tokens) reach terminal output, logs, or commits; instead show a status code or a redacted fingerprint to demonstrate it worked. Confidence: 0.8
+- Wants working apps deployed to Vercel as the default hosting target (rather than left running only locally or on another platform). Confidence: 0.6
+- Communicates casually, terse and typo-tolerant; a fast informal reply is preferred over formal or over-polished phrasing. Confidence: 0.5

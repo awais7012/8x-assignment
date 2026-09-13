@@ -23,7 +23,8 @@ your history and a credit balance.
 | `/quiz`      | 2-screen onboarding; writes `UserProfile` and sets workspace defaults |
 | `/ai/image`  | Image generation (text-to-image, optional reference image)        |
 | `/ai/video`  | Video generation (see "Video" below)                              |
-| `/api/*`     | `generate`, `history`, `profile`                                  |
+| `/pricing`   | Credit packs. Public; buying needs a signed-in account.           |
+| `/api/*`     | `generate`, `history`, `profile`, `checkout`, `stripe/webhook`    |
 
 ## Running it
 
@@ -66,12 +67,39 @@ assets exist for the hero and feature tiles, so those areas are built as layered
 CSS/SVG gradients (`ArtPanel`) at the correct aspect ratios — vector, themeable,
 and swappable for real images later.
 
+## Credits and payments
+
+One-time credit packs bought through **Stripe hosted Checkout** — no
+subscriptions, no customer portal, no Stripe.js in the browser. A single pack
+($10 → 2,000 credits) is defined in `src/lib/plans.ts`, which both the pricing
+page and the checkout route read so the price and the granted credits cannot
+drift.
+
+- `POST /api/checkout` (Clerk-gated) creates a Checkout Session and returns its
+  URL; the browser is handed to Stripe.
+- `POST /api/stripe/webhook` verifies the signature against the **raw** body and
+  fulfils `checkout.session.completed`.
+- Fulfilment is idempotent: `Purchase.stripeSessionId` is unique, so a retried
+  webhook or a double-submitted success page can never grant the same credits
+  twice. The success page also fulfils, so a slow webhook never leaves the buyer
+  looking at a stale balance.
+- The amount is cross-checked against the local price table rather than trusting
+  session metadata.
+
+Configure `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`. Until `STRIPE_SECRET_KEY`
+is set the app still builds and runs — the pricing page renders and checkout
+reports itself as unconfigured, exactly like Clerk. Test mode: pay with
+`4242 4242 4242 4242`, any future expiry and CVC. Locally,
+`stripe listen --forward-to localhost:3113/api/stripe/webhook` gives you a
+`whsec_` to develop against.
+
 ## Deliberately out of scope
 
 Cinema Studio camera controls, Soul ID, audio/dubbing, Marketing Studio, motion
-transfer, real payments, team/org workspaces, and the original product's
-fake-scarcity discount countdown. The nav keeps those links so it matches the
-reference; they land on a styled "not in this build" page rather than a 404.
+transfer, subscriptions and recurring billing, team/org workspaces, and the
+original product's fake-scarcity discount countdown. The nav keeps those links so
+it matches the reference; they land on a styled "not in this build" page rather
+than a 404.
 
 ## Agent capture
 

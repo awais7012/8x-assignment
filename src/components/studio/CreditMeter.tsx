@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function CreditMeter({
   credits,
   cost,
@@ -16,6 +18,12 @@ export function CreditMeter({
       <p className="mt-0.5 text-[12px] text-dim">
         {cost} per generation · about {estimate} left
       </p>
+      <Link
+        href="/pricing"
+        className="mt-2 inline-flex text-[12px] font-medium text-accent transition-colors hover:text-accent-hover"
+      >
+        Get more credits
+      </Link>
     </div>
   );
 }
