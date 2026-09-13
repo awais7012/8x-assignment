@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { CSSProperties } from "react";
@@ -18,7 +19,24 @@ export function HeroCard({
       className="animate-rise group relative flex min-h-[320px] flex-col justify-end overflow-hidden rounded-panel border border-line p-6 transition-colors duration-300 hover:border-line-strong"
       style={{ "--i": index } as CSSProperties}
     >
-      <ArtPanel variant={card.art} />
+      {card.image ? (
+        <>
+          <Image
+            src={card.image}
+            alt=""
+            fill
+            sizes="(min-width: 768px) 33vw, 100vw"
+            priority={index === 0}
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/15"
+          />
+        </>
+      ) : (
+        <ArtPanel variant={card.art} />
+      )}
       <ArrowUpRight
         aria-hidden
         size={20}

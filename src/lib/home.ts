@@ -15,6 +15,7 @@ export const heroCards: HeroCard[] = [
     title: "Higgsfield AI Motion Designer",
     description: "ChatGPT can now do motion design in After Effects.",
     art: "motion",
+    image: "/art/hero-motion.jpg",
     href: "/chatgpt-plugin",
   },
   {
@@ -22,6 +23,7 @@ export const heroCards: HeroCard[] = [
     title: "Higgsfield Effects",
     description: "Viral video presets now in ChatGPT, with free generations.",
     art: "effects",
+    image: "/art/hero-effects.jpg",
     badge: { text: "Free trial", tone: "free" },
     href: "/effects",
   },
@@ -30,6 +32,7 @@ export const heroCards: HeroCard[] = [
     title: "Higgsfield Genjutsu",
     description: "One upload in. Endless new visions out.",
     art: "genjutsu",
+    image: "/art/hero-genjutsu.jpg",
     badge: { text: "New", tone: "new" },
     href: "/ai/video?model=genjutsu",
   },
@@ -43,6 +46,7 @@ export const promo: PromoPanel = {
     "Access to Seedance 2.5",
   ],
   cta: "Sign up and get your discount",
+  image: "/art/promo-landscape.jpg",
 };
 
 const icons: Record<string, LucideIcon> = {
@@ -61,6 +65,7 @@ export const featureCards: FeatureCard[] = [
     description: "The most advanced video model",
     icon: icons.video,
     art: "seedance",
+    image: "/art/feat-seedance.jpg",
     badge: { text: "Top", tone: "top" },
     href: "/ai/video",
   },
@@ -70,6 +75,7 @@ export const featureCards: FeatureCard[] = [
     description: "Generate high-quality visuals",
     icon: icons.image,
     art: "nano",
+    image: "/art/feat-nano.jpg",
     href: "/ai/image",
   },
   {
@@ -78,8 +84,9 @@ export const featureCards: FeatureCard[] = [
     description: "One video, many versions",
     icon: icons.wand,
     art: "genjutsu",
+    image: "/art/feat-genjutsu.jpg",
     badge: { text: "New", tone: "new" },
-    href: "/ai/video?model=genjutsu",
+    href: "/ai/video",
   },
   {
     id: "mcp",
@@ -87,6 +94,7 @@ export const featureCards: FeatureCard[] = [
     description: "Turn Claude into a creative engine",
     icon: icons.terminal,
     art: "agent",
+    image: "/art/feat-mcp.jpg",
     href: "/mcp",
   },
   {
@@ -95,6 +103,7 @@ export const featureCards: FeatureCard[] = [
     description: "Create cinematic scenes effortlessly",
     icon: icons.film,
     art: "cinema",
+    image: "/art/feat-cinema.jpg",
     href: "/cinema-studio",
   },
   {
@@ -103,6 +112,7 @@ export const featureCards: FeatureCard[] = [
     description: "Agent powered by GPT-6 Astra",
     icon: icons.sparkles,
     art: "agent",
+    image: "/art/feat-supercomputer.jpg",
     href: "/supercomputer",
   },
 ];

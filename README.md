@@ -62,10 +62,20 @@ result itself. Disclosed simulation, not a silent fake.
 
 ### A note on the art
 
-The four reference screenshots in `assets/` are the visual spec. No source photo
-assets exist for the hero and feature tiles, so those areas are built as layered
-CSS/SVG gradients (`ArtPanel`) at the correct aspect ratios — vector, themeable,
-and swappable for real images later.
+The four reference screenshots in `assets/` are the visual spec. Its tiles use
+AI-generated photography, which we had no source files for, so the tile art in
+`public/art/` was generated to match — one image per hero tile and per feature
+card, wired through `image` in `src/lib/home.ts`.
+
+`ArtPanel` is kept as the fallback: any card without an `image` still renders the
+layered CSS/SVG gradient, so the layout never depends on a binary being present.
+To swap in your own art, drop a file in `public/art/` and point the card's
+`image` at it.
+
+The art was generated with Pollinations' free tier, which stamps a small
+`pollinations.ai` watermark in the corner of each image. If you'd rather not have
+it, register a free key at <https://auth.pollinations.ai>, set
+`POLLINATIONS_TOKEN`, and regenerate the same prompts without the mark.
 
 ## Credits and payments
 

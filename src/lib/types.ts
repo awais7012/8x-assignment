@@ -18,6 +18,8 @@ export interface HeroCard {
   title: string;
   description: string;
   art: ArtVariant;
+  /* Tile art under /public. Falls back to ArtPanel's gradients when absent. */
+  image?: string;
   badge?: BadgeSpec;
   href: string;
 }
@@ -26,6 +28,7 @@ export interface PromoPanel {
   title: string;
   benefits: string[];
   cta: string;
+  image?: string;
 }
 
 export interface FeatureCard {
@@ -34,6 +37,7 @@ export interface FeatureCard {
   description: string;
   icon: LucideIcon;
   art: ArtVariant;
+  image?: string;
   badge?: BadgeSpec;
   href: string;
 }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import type { PromoPanel as PromoPanelSpec } from "@/lib/types";
@@ -5,6 +6,21 @@ import type { PromoPanel as PromoPanelSpec } from "@/lib/types";
 export function PromoPanel({ promo }: { promo: PromoPanelSpec }) {
   return (
     <div className="relative overflow-hidden rounded-panel border border-accent/30 bg-accent/[0.06] p-8 sm:p-10">
+      {promo.image ? (
+        <>
+          <Image
+            src={promo.image}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-r from-bg via-bg/85 to-bg/40"
+          />
+        </>
+      ) : null}
       <div
         aria-hidden
         className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-accent/10 blur-3xl"
