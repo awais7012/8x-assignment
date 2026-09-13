@@ -17,3 +17,4 @@
 - Wants working apps deployed to Vercel as the default hosting target (rather than left running only locally or on another platform). Confidence: 0.6
 - Communicates casually, terse and typo-tolerant; a fast informal reply is preferred over formal or over-polished phrasing. Confidence: 0.5
 - Tends to paste API keys/credentials (Stripe, Clerk, etc.) directly into the chat instead of placing them in `.env` himself, even after being asked not to — expect to ingest secrets from messages, write them into the gitignored env file, and redact/clean the capture log afterward. Confidence: 0.6
+- Wants UI cards/panels to carry real imagery (images or video), not empty or gradient-only placeholder boxes — expects visual completeness against the reference and will ask for actual assets to be sourced and dropped in, pointing to a web image search as the default way to find them. Confidence: 0.5
