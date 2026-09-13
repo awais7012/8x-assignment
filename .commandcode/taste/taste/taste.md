@@ -6,6 +6,7 @@
 - Expects external facts (API free-tier limits, provider capabilities) to be re-verified at build time rather than trusting numbers written earlier in a doc, and expects the same for the agent's own tooling — look up whether a hook/mechanism exists before answering or falling back to a manual workaround; guessing is not acceptable. Confidence: 0.55
 - Wants commits authored under the user's own git identity/account, with no bot or assistant name appearing in the commit. Confidence: 0.9
 - Wants a commit for every change / work done on branches rather than leaving changes uncommitted. Confidence: 0.75
+- Expects work to be pushed to GitHub, not just left as local commits: the remote repo should stay in sync (0 ahead/0 behind) and the user treats unpushed commits as unfinished work. Confidence: 0.7
 - Wants full, professional commit messages. Confidence: 0.7
 - Prefers automation that fires on its own over manual steps: if a step requires the user to remember to run it, the approach is considered wrong. Confidence: 0.6
 - Values raw, unedited records over tidy ones: do not edit, summarize, or delete entries after the fact, and keep dead ends, wrong turns, and failed attempts rather than cleaning them up. Confidence: 0.6
