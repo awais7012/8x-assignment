@@ -13,3 +13,5 @@ next-env.d.ts
 # hook's error sidecar, neither of which is part of the prompt/response record.
 .agent-logs/.capture-state.json
 .agent-logs/.capture-errors.log
+.vercel
+.env*.local

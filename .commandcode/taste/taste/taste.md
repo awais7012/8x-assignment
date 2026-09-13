@@ -16,3 +16,4 @@
 - Never lets secret material (API keys, tokens) reach terminal output, logs, or commits; instead show a status code or a redacted fingerprint to demonstrate it worked. Confidence: 0.8
 - Wants working apps deployed to Vercel as the default hosting target (rather than left running only locally or on another platform). Confidence: 0.6
 - Communicates casually, terse and typo-tolerant; a fast informal reply is preferred over formal or over-polished phrasing. Confidence: 0.5
+- Tends to paste API keys/credentials (Stripe, Clerk, etc.) directly into the chat instead of placing them in `.env` himself, even after being asked not to — expect to ingest secrets from messages, write them into the gitignored env file, and redact/clean the capture log afterward. Confidence: 0.6
