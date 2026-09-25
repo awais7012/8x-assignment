@@ -5,6 +5,7 @@ import { HeroCard } from "@/components/home/HeroCard";
 import { PromoPanel } from "@/components/home/PromoPanel";
 import { ZentryHero } from "@/components/home/ZentryHero";
 import { WorksWheel } from "@/components/ui/works-wheel";
+import { SAMPLE_WORKS } from "@/lib/sample-works";
 import { featureCards, heroCards, promo } from "@/lib/home";
 
 export default function HomePage() {
@@ -17,8 +18,8 @@ export default function HomePage() {
 
       <main id="main" className="mx-auto max-w-[1600px] px-4 pb-24 lg:px-6">
         {/* Explore what's possible - 3D Works Wheel */}
-        <section aria-label="Explore what's possible" className="py-8 pb-16">
-          <WorksWheel />
+        <section aria-label="Works Wheel" className="py-8 pb-16">
+          <WorksWheel items={SAMPLE_WORKS} label="Works '26" action="Create" className="h-[520px] sm:h-[700px] rounded-3xl border border-line bg-surface/30" />
         </section>
 
         <section aria-labelledby="featured-heading" className="pb-14">

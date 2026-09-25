@@ -1,466 +1,400 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
-import { ChevronLeft, ChevronRight, Sparkles, Play } from "lucide-react";
+// A portfolio index built as a wheel you turn.
+//
+// At rest the work sits in a ring around a title, each card tangent to the
+// circle. The first notch of scroll blows the ring open into a vertical drum:
+// the card at the front lies flat and full size, the ones above and below
+// rotate away into hard perspective and run off the top and bottom of the
+// frame. Keep turning and the drum carries the next piece round to the front.
+//
+// The whole thing is one number - `turn` - read by a single rAF pass that writes
+// transforms straight to the DOM. 0 is the ring, 1 is the drum with item 0 at
+// the front, and every whole number after that is one more item turned past.
+import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 export interface WorksWheelItem {
-  id: string;
+  /** Project name. Shown beside the front card and in the index. */
   title: string;
-  category?: string;
-  prompt?: string;
+  /** Cover art. Any src an <img> takes. */
   image: string;
-  previewVideo?: string;
-  badge?: string;
+  /** Where the card links to. Omit for a wheel that only browses. */
+  href?: string;
 }
 
-/*
- * TODO: Swap in real generation thumbnails from dev DB /api/history post-launch.
- * Curated high-aesthetic AI-style outputs representing the Higgsfield Studio capabilities.
- */
-export const SAMPLE_GENERATIONS: WorksWheelItem[] = [
-  {
-    id: "sample-1",
-    title: "Neon Rain Samurai",
-    category: "Cinematic Film",
-    prompt: "A cybernetic ronin standing under glowing holographic rainfall, 35mm anamorphic lens, ray tracing, cinematic atmosphere",
-    image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80",
-    previewVideo: "https://assets.mixkit.co/videos/preview/mixkit-futuristic-city-with-flying-cars-at-night-41589-large.mp4",
-    badge: "Video · 4 cr",
-  },
-  {
-    id: "sample-2",
-    title: "Ethereal Porcelain Muse",
-    category: "Studio Avatar",
-    prompt: "Haute couture studio portrait of a woman with delicate gold leaf accents, porcelain texture, soft dramatic Rembrandt lighting",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
-    badge: "Image · 1 cr",
-  },
-  {
-    id: "sample-3",
-    title: "Bioluminescent Abyssal Flora",
-    category: "Macro Nature",
-    prompt: "Deep sea glowing crystalline plant with glowing spores, macro lens, hyperdetailed, 8k resolution, organic luminescence",
-    image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&auto=format&fit=crop&q=80",
-    previewVideo: "https://assets.mixkit.co/videos/preview/mixkit-bright-light-particles-in-motion-41885-large.mp4",
-    badge: "Video · 4 cr",
-  },
-  {
-    id: "sample-4",
-    title: "Cosmic Nebula Portal",
-    category: "Sci-Fi Space",
-    prompt: "An interstellar rift swirling with stardust and violet auroras, cinematic lighting, ultra-realistic celestial photography",
-    image: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=800&auto=format&fit=crop&q=80",
-    badge: "Image · 1 cr",
-  },
-  {
-    id: "sample-5",
-    title: "Minimalist Architectural Noir",
-    category: "Architecture",
-    prompt: "Brutalist concrete villa overlooking misty Nordic pine forest at twilight, volumetric lighting, architectural digest cover",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80",
-    badge: "Image · 1 cr",
-  },
-  {
-    id: "sample-6",
-    title: "Iridescent Fluid Dynamic",
-    category: "3D Motion",
-    prompt: "Hyper-glossy chromatic ribbons suspended in gravity-free chamber, soft studio reflections, Octane render 8k",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
-    previewVideo: "https://assets.mixkit.co/videos/preview/mixkit-colorful-liquid-motion-in-slow-motion-42624-large.mp4",
-    badge: "Video · 4 cr",
-  },
-  {
-    id: "sample-7",
-    title: "Solarpunk Greenhouse Metropolis",
-    category: "Environment Concept",
-    prompt: "Futuristic vertical gardens wrapped around solar glass skyscrapers, golden hour sunbeams, atmospheric haze",
-    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&auto=format&fit=crop&q=80",
-    badge: "Image · 1 cr",
-  },
-  {
-    id: "sample-8",
-    title: "Obsidian Luxury Fragrance",
-    category: "Product Shot",
-    prompt: "Matte black geometric perfume bottle resting on raw travertine marble with delicate water ripples, high key studio rim light",
-    image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&auto=format&fit=crop&q=80",
-    badge: "Image · 1 cr",
-  },
-];
+export interface WorksWheelProps extends Omit<
+  React.ComponentPropsWithoutRef<"section">,
+  "children"
+> {
+  items: WorksWheelItem[];
+  /** Sits in the middle of the ring. @default undefined */
+  label?: string;
+  /** Label on the card's hover affordance. Omit to drop it. @default undefined */
+  action?: string;
+}
 
-interface WorksWheelProps {
-  items?: WorksWheelItem[];
-  title?: string;
-  subtitle?: string;
-  className?: string;
+/* Geometry. The card is measured against the stage; everything else is measured
+   against the card, so a narrow stage - where the card is capped by width, not
+   height - scales the whole wheel down with it instead of leaving a small card
+   swinging on a huge drum. The three that matter are tuned together: STEP
+   against DRUM sets how hard the neighbours rotate away, and DRUM against LENS
+   decides whether they land inside the frame or run off it. */
+const CARD_H = 0.38; // front card height, of the stage
+const CARD_MAX_W = 0.34; // ... but never wider than this much of the stage
+const CARD_RATIO = 1.45; // card width / height
+const STEP = 40; // degrees between cards on the drum
+const DRUM = 2.22; // drum radius, in card heights - and everything below likewise
+const LENS = 2.7; // perspective distance
+const RING_R = 1.14; // ring radius
+/* The drum alone hangs the work on a plumb line. It isn't one: the strip curves
+   away round an arc whose centre sits off to the LEFT, so the piece at the front
+   is at the arc's near point - dead centre - and its neighbours have already
+   swung back left as well as up and down. BOW is that arc's radius; nothing else
+   makes the difference between a stack of cards and a wheel seen side on. */
+const BOW = 1.82;
+const TITLE = 0.124; // ring label and front-card title
+const INDEX = 0.04; // the index down the right-hand side
+/** Items either side of the front still worth drawing. Past this a card is
+    edge-on, and further round it would stack up on the vanishing point. */
+const CULL = 1.6;
+
+/** How much of a wheel-notch or a dragged pixel counts as one item. */
+const WHEEL_UNITS = 900;
+const DRAG_UNITS = 420;
+/** Quiet time after the last wheel event before the wheel settles on an item. */
+const SETTLE = 140;
+/** Fraction of the remaining distance closed each frame. 1 = no smoothing. */
+const EASE = 0.12;
+
+const clamp = (v: number, lo: number, hi: number) =>
+  Math.min(hi, Math.max(lo, v));
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+type Stage = { w: number; h: number };
+
+const rad = (deg: number) => (deg * Math.PI) / 180;
+
+/** How far left the arc has carried something that has turned `drumDeg` off the
+    front. Zero at the front, so the piece being read stays centred. */
+const bowAt = (drumDeg: number, bow: number) =>
+  -bow * (1 - Math.cos(rad(drumDeg)));
+
+/** Both states in one chain: the ring terms fall away as `m` reaches the drum,
+    and the drum terms are still zero while the ring is up. The bow is applied
+    first, in the wheel's own plane, so it slides the card sideways rather than
+    turning with it - and perspective still shrinks it with distance. */
+function place(
+  ringDeg: number,
+  drumDeg: number,
+  ringR: number,
+  drumR: number,
+  bow: number,
+  m: number,
+) {
+  return (
+    `translateX(${m * bowAt(drumDeg, bow)}px)` +
+    ` rotateZ(${(1 - m) * ringDeg}deg) translateY(${-(1 - m) * ringR}px)` +
+    ` rotateX(${m * drumDeg}deg) translateZ(${m * drumR}px)`
+  );
 }
 
 export function WorksWheel({
-  items = SAMPLE_GENERATIONS,
-  title = "Explore what's possible",
-  subtitle = "Drag to rotate the studio gallery. Click any style to generate.",
+  items,
+  label = "Works '26",
+  action = "View",
   className,
+  ...props
 }: WorksWheelProps) {
-  const router = useRouter();
+  const stageRef = React.useRef<HTMLDivElement>(null);
+  const wheelRef = React.useRef<HTMLDivElement>(null);
+  const cardRefs = React.useRef<(HTMLElement | null)[]>([]);
+  const labelRef = React.useRef<HTMLDivElement>(null);
+  const titleRef = React.useRef<HTMLDivElement>(null);
 
-  // Safe Clerk auth state lookup
-  let isSignedIn = false;
-  try {
-    const clerkUser = useUser();
-    isSignedIn = Boolean(clerkUser?.isSignedIn);
-  } catch {
-    isSignedIn = false;
-  }
+  // The wheel's position, and where it is heading. Only `active` is state -
+  // everything else is written to the DOM, so turning the wheel is not a render.
+  const turn = React.useRef(0);
+  const target = React.useRef(0);
+  const [active, setActive] = React.useState(0);
+  const [stage, setStage] = React.useState<Stage>({ w: 0, h: 0 });
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [stageWidth, setStageWidth] = useState(1000);
-  const [rotation, setRotation] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const count = items.length;
+  const last = Math.max(count - 1, 0);
 
-  // Drag bookkeeping
-  const dragRef = useRef({
-    startX: 0,
-    startRotation: 0,
-    moved: false,
-    velocity: 0,
-    lastX: 0,
-    lastTime: 0,
-  });
+  // Read after mount, not during render: the server has no matchMedia, and
+  // branching on it inline is a hydration mismatch. Reduced motion drops the
+  // easing, so the wheel lands where it is put instead of gliding there.
+  const [reduced, setReduced] = React.useState(false);
+  React.useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const read = () => setReduced(query.matches);
+    read();
+    query.addEventListener("change", read);
+    return () => query.removeEventListener("change", read);
+  }, []);
 
-  const animFrameRef = useRef<number | null>(null);
+  React.useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const read = () => setStage({ w: el.clientWidth, h: el.clientHeight });
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
-  // ResizeObserver for dynamic scaling
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
+  const metrics = React.useMemo(() => {
+    const { w, h } = stage;
+    const cardW = Math.min(h * CARD_H * CARD_RATIO, w * CARD_MAX_W);
+    const cardH = cardW / CARD_RATIO;
+    const drumR = cardH * DRUM;
+    const ringR = cardH * RING_R;
+    // Shrink the ring's cards until the circle reads as a closed loop rather
+    // than beads on a wire, however many pieces the wheel is given.
+    const ringScale = count
+      ? clamp((((2 * Math.PI * ringR) / count) * 0.82) / (cardW || 1), 0.16, 1)
+      : 1;
+    return {
+      cardW,
+      cardH,
+      ringR,
+      ringScale,
+      drumR,
+      bow: cardH * BOW,
+      depth: cardH * LENS,
+      title: cardH * TITLE,
+      index: cardH * INDEX,
+    };
+  }, [stage, count]);
 
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.contentRect.width > 0) {
-          setStageWidth(entry.contentRect.width);
+  // One pass per frame: ease toward the target, then write every transform.
+  React.useEffect(() => {
+    if (!stage.h) return;
+    let frame = 0;
+    const { ringR, ringScale, drumR, bow } = metrics;
+
+    const draw = () => {
+      frame = requestAnimationFrame(draw);
+      const gap = target.current - turn.current;
+      if (Math.abs(gap) < 0.0005) turn.current = target.current;
+      else turn.current += gap * (reduced ? 1 : EASE);
+
+      const t = turn.current;
+      const m = clamp(t, 0, 1);
+      const pos = Math.max(0, t - 1);
+
+      // The drum is pulled back so its front face lands on the picture plane.
+      // That set-back has to arrive with the drum, or the ring would sit at the
+      // far side of the perspective and render at half its size.
+      if (wheelRef.current) {
+        wheelRef.current.style.transform = `translateZ(${-m * drumR}px)`;
+      }
+
+      for (let i = 0; i < count; i++) {
+        const d = i - pos;
+        const drumDeg = d * STEP;
+        const card = cardRefs.current[i];
+        if (card) {
+          card.style.transform = place(
+            d * (360 / count),
+            drumDeg,
+            ringR,
+            drumR,
+            bow,
+            m,
+          );
+          // Culled by distance, not by angle: at a full turn the far side comes
+          // back round to face us, and everything past the neighbours lands on
+          // the vanishing point in a heap.
+          card.style.opacity = m > 0.5 && Math.abs(d) > CULL ? "0" : "1";
+          card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
         }
+        const face = card?.firstElementChild as HTMLElement | null;
+        if (face) face.style.transform = `scale(${lerp(ringScale, 1, m)})`;
       }
-    });
 
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, []);
+      if (labelRef.current) labelRef.current.style.opacity = String(1 - m);
+      if (titleRef.current) titleRef.current.style.opacity = String(m);
+      const near = clamp(Math.round(pos), 0, last);
+      setActive((prev) => (prev === near ? prev : near));
+    };
 
-  const totalItems = items.length;
-  const angleStep = 360 / totalItems;
+    frame = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(frame);
+  }, [metrics, stage.h, count, last, reduced]);
 
-  // Responsive metric calculation based on stage width
-  const isMobile = stageWidth < 768;
-  const isSmallMobile = stageWidth < 480;
-
-  const cardWidth = isSmallMobile ? 220 : isMobile ? 260 : Math.min(320, stageWidth * 0.28);
-  const cardHeight = isSmallMobile ? 310 : isMobile ? 360 : 440;
-
-  // Cylinder radius formula: R = (cardWidth / 2) / tan(PI / totalItems) + padding
-  const baseRadius = Math.round(
-    (cardWidth / 2) / Math.tan(Math.PI / totalItems)
+  const to = React.useCallback(
+    (next: number) => {
+      target.current = clamp(next, 0, last + 1);
+    },
+    [last],
   );
-  const radius = Math.max(isSmallMobile ? 280 : isMobile ? 360 : 480, baseRadius * (isMobile ? 1.05 : 1.15));
 
-  // Friction & momentum physics
-  const stopMomentum = useCallback(() => {
-    if (animFrameRef.current !== null) {
-      cancelAnimationFrame(animFrameRef.current);
-      animFrameRef.current = null;
-    }
-  }, []);
-
-  const applyMomentum = useCallback(() => {
-    let vel = dragRef.current.velocity;
-    const friction = 0.92;
-    const minVel = 0.05;
-
-    const step = () => {
-      if (Math.abs(vel) > minVel) {
-        vel *= friction;
-        setRotation((prev) => prev + vel);
-        animFrameRef.current = requestAnimationFrame(step);
-      } else {
-        animFrameRef.current = null;
-      }
+  // Native listener, because the wheel has to be cancellable - and it only
+  // cancels while it still has somewhere to go, so the page scrolls on at
+  // either end instead of trapping the reader.
+  React.useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const onWheel = (event: WheelEvent) => {
+      const next = target.current + event.deltaY / WHEEL_UNITS;
+      if (next > 0 && next < last + 1) event.preventDefault();
+      to(next);
+      // A wheel gesture arrives as a burst of events with no end of its own, so
+      // the rest position is whatever notch it happened to stop on. Left there
+      // the drum sits between two cards - nothing at the front, and the pair
+      // either side of the gap both turned half away. Settle onto an item.
+      window.clearTimeout(settling.current);
+      settling.current = window.setTimeout(
+        () => to(Math.round(target.current)),
+        SETTLE,
+      );
     };
-
-    animFrameRef.current = requestAnimationFrame(step);
-  }, []);
-
-  // Pointer drag handlers
-  const handlePointerDown = (e: React.PointerEvent) => {
-    stopMomentum();
-    setIsDragging(true);
-    dragRef.current = {
-      startX: e.clientX,
-      startRotation: rotation,
-      moved: false,
-      velocity: 0,
-      lastX: e.clientX,
-      lastTime: performance.now(),
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      window.clearTimeout(settling.current);
     };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
+  }, [to, last]);
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    const deltaX = e.clientX - dragRef.current.startX;
-    if (Math.abs(deltaX) > 4) {
-      dragRef.current.moved = true;
-    }
-
-    const now = performance.now();
-    const dt = Math.max(1, now - dragRef.current.lastTime);
-    const dx = e.clientX - dragRef.current.lastX;
-    dragRef.current.velocity = (dx / dt) * 8;
-    dragRef.current.lastX = e.clientX;
-    dragRef.current.lastTime = now;
-
-    // Sensitivity factor
-    const sensitivity = isMobile ? 0.35 : 0.22;
-    setRotation(dragRef.current.startRotation + deltaX * sensitivity);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {
-      // Ignored
-    }
-    applyMomentum();
-  };
-
-  // Wheel scroll interaction
-  const handleWheel = (e: React.WheelEvent) => {
-    stopMomentum();
-    const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-    setRotation((prev) => prev - delta * 0.12);
-  };
-
-  // Click card handler (auth gated navigation, prevents action if dragged)
-  const handleCardClick = (item: WorksWheelItem) => {
-    if (dragRef.current.moved) return;
-
-    if (isSignedIn) {
-      router.push(`/ai/image?prompt=${encodeURIComponent(item.prompt || item.title)}`);
-    } else {
-      router.push("/sign-up");
-    }
-  };
-
-  // Step rotation controls
-  const rotatePrev = () => {
-    stopMomentum();
-    setRotation((prev) => prev + angleStep);
-  };
-
-  const rotateNext = () => {
-    stopMomentum();
-    setRotation((prev) => prev - angleStep);
-  };
+  const drag = React.useRef<number | null>(null);
+  const settling = React.useRef(0);
 
   return (
     <section
-      ref={containerRef}
-      aria-label={title}
+      aria-label={label}
       className={cn(
-        "relative w-full overflow-hidden select-none py-12 sm:py-20 flex flex-col items-center justify-center min-h-[82vh] lg:min-h-[90vh]",
-        className
+        "bg-background text-foreground relative h-full min-h-[24rem] w-full overflow-hidden select-none",
+        className,
       )}
-      onWheel={handleWheel}
+      {...props}
     >
-      {/* Background ambient lighting */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-40 -z-10"
-      >
-        <div className="h-[380px] w-[600px] rounded-full bg-accent/15 blur-[120px]" />
-      </div>
-
-      {/* Header section */}
-      <div className="text-center px-4 max-w-2xl mx-auto mb-8 sm:mb-12">
-        <p className="animate-fade text-[13px] font-medium tracking-[0.14em] text-accent uppercase">
-          Studio Showcase
-        </p>
-        <h2 className="animate-rise mt-3 text-3xl sm:text-5xl font-semibold tracking-tight text-ink text-balance">
-          {title}
-        </h2>
-        <p className="animate-rise mt-3 text-sm sm:text-base text-muted text-pretty">
-          {subtitle}
-        </p>
-      </div>
-
-      {/* 3D Wheel Stage */}
       <div
         ref={stageRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        className={cn(
-          "relative w-full max-w-[1440px] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing",
-          "h-[380px] sm:h-[480px] lg:h-[540px]"
-        )}
-        style={{
-          perspective: `${Math.max(900, radius * 2.2)}px`,
-          perspectiveOrigin: "50% 50%",
+        tabIndex={0}
+        role="listbox"
+        aria-label={label}
+        aria-activedescendant={`works-wheel-${active}`}
+        className="focus-visible:outline-foreground absolute inset-0 cursor-grab touch-pan-x outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 active:cursor-grabbing"
+        style={{ perspective: `${metrics.depth}px` }}
+        onPointerDown={(event) => {
+          drag.current = event.clientY;
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (drag.current === null) return;
+          to(target.current + (drag.current - event.clientY) / DRAG_UNITS);
+          drag.current = event.clientY;
+        }}
+        onPointerUp={() => {
+          // Land on an item rather than between two.
+          drag.current = null;
+          if (target.current > 1) to(Math.round(target.current));
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") to(Math.round(target.current) + 1);
+          else if (event.key === "ArrowUp") to(Math.round(target.current) - 1);
+          else return;
+          event.preventDefault();
         }}
       >
-        {/* 3D Cylinder Container */}
         <div
-          className="relative h-full w-full flex items-center justify-center transition-transform duration-75 ease-out"
-          style={{
-            transformStyle: "preserve-3d",
-            transform: `translateZ(-${radius}px) rotateY(${rotation}deg)`,
-          }}
+          ref={wheelRef}
+          className="absolute top-1/2 left-1/2 [transform-style:preserve-3d]"
         >
-          {items.map((item, index) => {
-            const itemAngle = angleStep * index;
-            // Normalized angle relative to viewer front (0 deg)
-            const normalizedRot = ((rotation % 360) + 360) % 360;
-            const diffAngle = Math.abs(((itemAngle + normalizedRot + 180) % 360) - 180);
-            const isFront = diffAngle < angleStep * 0.75;
-            const opacity = Math.max(0.28, Math.cos((diffAngle * Math.PI) / 180));
-            const isHovered = hoveredId === item.id;
-
+          {items.map((item, i) => {
+            const Tag = (item.href ? "a" : "div") as "a";
             return (
-              <div
-                key={item.id}
-                role="button"
-                tabIndex={0}
-                aria-label={`Create style: ${item.title}`}
-                onClick={() => handleCardClick(item)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleCardClick(item);
-                  }
-                }}
-                onMouseEnter={() => setHoveredId(item.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                className={cn(
-                  "absolute overflow-hidden rounded-panel border transition-all duration-300 group cursor-pointer",
-                  isFront
-                    ? "border-accent/40 shadow-2xl shadow-accent/10"
-                    : "border-line bg-surface/60 hover:border-line-strong",
-                  "bg-surface/85 backdrop-blur-md"
-                )}
-                style={{
-                  width: `${cardWidth}px`,
-                  height: `${cardHeight}px`,
-                  transform: `rotateY(${itemAngle}deg) translateZ(${radius}px)`,
-                  opacity: isHovered ? 1 : opacity,
-                  transformStyle: "preserve-3d",
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                {/* Media Container */}
-                <div className="relative h-full w-full overflow-hidden">
-                  {isHovered && item.previewVideo ? (
-                    <video
-                      src={item.previewVideo}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="h-full w-full object-cover transition-transform duration-500 scale-105"
-                    />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
+              <React.Fragment key={item.title}>
+                <Tag
+                  id={`works-wheel-${i}`}
+                  role="option"
+                  aria-selected={i === active}
+                  href={item.href}
+                  ref={(node: HTMLElement | null) => {
+                    cardRefs.current[i] = node;
+                  }}
+                  className="group absolute [backface-visibility:hidden]"
+                  style={{
+                    width: metrics.cardW,
+                    height: metrics.cardH,
+                    marginLeft: -metrics.cardW / 2,
+                    marginTop: -metrics.cardH / 2,
+                  }}
+                >
+                  <span className="bg-muted shadow-foreground/12 relative block size-full overflow-hidden rounded-lg shadow-[0_18px_40px_-18px_var(--tw-shadow-color)]">
                     <img
                       src={item.image}
                       alt={item.title}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      draggable={false}
+                      className="size-full object-cover"
                     />
-                  )}
-
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/30 to-transparent opacity-90 group-hover:opacity-75 transition-opacity" />
-
-                  {/* Top badges */}
-                  <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2 z-10">
-                    {item.badge ? (
-                      <span className="rounded-full bg-bg/80 border border-line px-2.5 py-1 text-[11px] font-semibold text-accent tracking-wide uppercase backdrop-blur-md">
-                        {item.badge}
+                    {action && item.href ? (
+                      <span className="bg-background/80 text-foreground pointer-events-none absolute right-3 bottom-3 flex translate-y-1 items-center gap-1 rounded-full px-2.5 py-1 text-[0.7rem] opacity-0 backdrop-blur-sm transition group-hover:translate-y-0 group-hover:opacity-100">
+                        <svg
+                          viewBox="0 0 12 12"
+                          className="size-2.5"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M3 9 9 3M4 3h5v5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.4"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        {action}
                       </span>
                     ) : null}
-                    {item.previewVideo ? (
-                      <span className="rounded-full bg-bg/70 border border-line p-1.5 text-muted backdrop-blur-md">
-                        <Play size={12} className="fill-muted" />
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* Bottom info panel */}
-                  <div className="absolute bottom-0 inset-x-0 p-4 z-10 text-left space-y-1.5">
-                    {item.category ? (
-                      <p className="text-[11px] font-medium tracking-wider text-accent uppercase">
-                        {item.category}
-                      </p>
-                    ) : null}
-                    <h3 className="text-base sm:text-lg font-semibold tracking-tight text-ink line-clamp-1">
-                      {item.title}
-                    </h3>
-                    {item.prompt ? (
-                      <p className="text-[12px] text-muted line-clamp-2 leading-relaxed">
-                        {item.prompt}
-                      </p>
-                    ) : null}
-
-                    <div className="pt-2 flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-accent group-hover:text-accent-hover transition-colors">
-                        <Sparkles size={13} />
-                        Generate with style
-                      </span>
-                      <span className="text-[11px] text-dim group-hover:text-muted transition-colors">
-                        {isSignedIn ? "Open Studio →" : "Sign up →"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  </span>
+                </Tag>
+              </React.Fragment>
             );
           })}
         </div>
       </div>
 
-      {/* Navigation Controls and Drag Hint */}
-      <div className="mt-8 flex items-center justify-center gap-4 z-20">
-        <button
-          type="button"
-          onClick={rotatePrev}
-          aria-label="Previous style"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface/80 text-ink transition-colors hover:border-line-strong hover:bg-surface-2 focus-visible:outline-none"
-        >
-          <ChevronLeft size={18} />
-        </button>
-
-        <p className="text-xs text-dim tracking-wide px-3 py-1 rounded-full border border-line/60 bg-surface/40">
-          Drag horizontally or use arrows to spin
-        </p>
-
-        <button
-          type="button"
-          onClick={rotateNext}
-          aria-label="Next style"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface/80 text-ink transition-colors hover:border-line-strong hover:bg-surface-2 focus-visible:outline-none"
-        >
-          <ChevronRight size={18} />
-        </button>
+      {/* Ring title and front-card title trade places across the transition.
+          Type is sized off the measured stage, not vh, so the wheel keeps its
+          proportions inside a card as well as at full bleed. */}
+      <div
+        ref={labelRef}
+        className="pointer-events-none absolute inset-0 grid place-items-center tracking-tight"
+        style={{ fontSize: metrics.title }}
+      >
+        {label}
       </div>
+      <div
+        ref={titleRef}
+        className="pointer-events-none absolute top-1/2 left-[8%] -translate-y-1/2 tracking-tight opacity-0"
+        style={{ fontSize: metrics.title }}
+      >
+        {items[active]?.title}
+      </div>
+
+      <ol
+        className="text-muted-foreground absolute top-[7.5%] right-[2.5%] text-right leading-[1.75]"
+        style={{ fontSize: metrics.index }}
+      >
+        {items.map((item, i) => (
+          <li key={item.title}>
+            <button
+              type="button"
+              onClick={() => to(i + 1)}
+              className={cn(
+                "focus-visible:outline-foreground cursor-pointer transition-colors outline-none focus-visible:outline-1",
+                i === active && "text-foreground font-medium",
+              )}
+            >
+              {item.title}
+            </button>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

@@ -7,6 +7,7 @@
 */
 @theme {
   --color-bg: #080f0f;
+  --color-background: #080f0f;
   --color-surface: #141a1a;
   --color-surface-2: #1c2222;
   --color-elevated: #232a2a;
@@ -14,7 +15,9 @@
   --color-line-strong: #3a4444;
 
   --color-ink: #f8f8f8;
+  --color-foreground: #f8f8f8;
   --color-muted: #9aa3a0;
+  --color-muted-foreground: #9aa3a0;
   --color-dim: #6b7573;
 
   --color-accent: #ddf752;

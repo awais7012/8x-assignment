@@ -16,24 +16,12 @@ const TOTAL_VIDEOS = 4;
 export function ZentryHero() {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [hasClicked, setHasClicked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadedVideos, setLoadedVideos] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const nextVdRef = useRef<HTMLVideoElement>(null);
   const currentVdRef = useRef<HTMLVideoElement>(null);
   const bgVdRef = useRef<HTMLVideoElement>(null);
-
-  const handleVideoLoad = () => {
-    setLoadedVideos((prev) => prev + 1);
-  };
-
-  useEffect(() => {
-    if (loadedVideos >= 2) {
-      setLoading(false);
-    }
-  }, [loadedVideos]);
 
   // Handle mini-video click to expand into main video
   const handleMiniVdClick = () => {
@@ -104,18 +92,6 @@ export function ZentryHero() {
       ref={containerRef}
       className="relative h-dvh w-full overflow-x-hidden bg-bg"
     >
-      {/* Loading overlay */}
-      {loading && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-bg/90 backdrop-blur-md">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-              Loading Higgsfield Studio…
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Main Video Frame */}
       <div
         id="video-frame"
@@ -138,7 +114,6 @@ export function ZentryHero() {
                   playsInline
                   id="current-video"
                   className="size-full object-cover object-center"
-                  onLoadedData={handleVideoLoad}
                 />
 
                 {/* Overlay badge on hover */}
@@ -163,7 +138,6 @@ export function ZentryHero() {
             playsInline
             id="next-video"
             className="invisible absolute left-1/2 top-1/2 z-20 h-64 w-64 -translate-x-1/2 -translate-y-1/2 object-cover object-center"
-            onLoadedData={handleVideoLoad}
           />
 
           {/* Background Video */}
@@ -175,7 +149,6 @@ export function ZentryHero() {
             muted={isMuted}
             playsInline
             className="absolute left-0 top-0 size-full object-cover object-center"
-            onLoadedData={handleVideoLoad}
           />
 
           {/* Dark gradient overlay for readability */}
