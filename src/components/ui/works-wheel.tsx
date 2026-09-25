@@ -363,10 +363,18 @@ export function WorksWheel({
           proportions inside a card as well as at full bleed. */}
       <div
         ref={labelRef}
-        className="pointer-events-none absolute inset-0 grid place-items-center tracking-tight"
-        style={{ fontSize: metrics.title }}
+        className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center tracking-tight gap-3 z-30"
       >
-        {label}
+        <a
+          href="/ai/image"
+          className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-accent/50 bg-bg/95 px-6 py-3 text-base sm:text-lg font-bold text-accent shadow-[0_0_40px_rgba(221,247,82,0.2)] backdrop-blur-2xl transition-all duration-300 hover:bg-accent hover:text-accent-ink hover:scale-105"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          {label}
+        </a>
+        <span className="text-xs text-muted/80 tracking-widest uppercase">
+          Scroll or drag wheel to browse styles
+        </span>
       </div>
       <div
         ref={titleRef}
