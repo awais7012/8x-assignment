@@ -26,6 +26,7 @@ export const HERO_VIDEOS: HeroVideoItem[] = [
     title: "Cybernetic Neo-Tokyo",
     category: "Seedance 2.5 Cinema",
     model: "Seedance 2.5 Pro",
+    // Original confirmed-working 21st.dev CDN — subway cinematic sequence
     src: "https://cdn.21st.dev/assets/mirror/21/21a77eac28eacbb7e142016eefeaa0b4a766619e51113629a3bc6df6af066c0f.mp4",
     prompt: "Cinematic drone dolly through neon-lit skyscraper canyons at midnight, volumetric rain reflections, 8k anamorphic film",
   },
@@ -34,7 +35,8 @@ export const HERO_VIDEOS: HeroVideoItem[] = [
     title: "Liquid Chromatic Dynamics",
     category: "3D Motion Recasting",
     model: "Genjutsu Motion",
-    src: "https://assets.mixkit.co/videos/preview/mixkit-colorful-liquid-motion-in-slow-motion-42624-large.mp4",
+    // Pexels #3571264 — city time-lapse, 200 OK confirmed
+    src: "https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4",
     prompt: "Hyperspeed iridescent liquid chrome splashing in zero gravity, dynamic studio lighting, Octane render 120fps",
   },
   {
@@ -42,7 +44,8 @@ export const HERO_VIDEOS: HeroVideoItem[] = [
     title: "Astra Sky Metropolis",
     category: "AI Worldbuilder",
     model: "Nano Banana Pro",
-    src: "https://assets.mixkit.co/videos/preview/mixkit-futuristic-city-with-flying-cars-at-night-41589-large.mp4",
+    // Pexels #3045163 — futuristic urban, 200 OK confirmed
+    src: "https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_25fps.mp4",
     prompt: "Flying vehicle traffic over futuristic glass architectural pyramids at twilight, cinematic golden hour lens flare",
   },
   {
@@ -50,10 +53,14 @@ export const HERO_VIDEOS: HeroVideoItem[] = [
     title: "Bioluminescent Astral Warp",
     category: "Neural Space Engine",
     model: "Supercomputer Astra",
-    src: "https://assets.mixkit.co/videos/preview/mixkit-bright-light-particles-in-motion-41885-large.mp4",
+    // Pexels #2278095 — neon city night, 200 OK confirmed
+    src: "https://videos.pexels.com/video-files/2278095/2278095-hd_1920_1080_30fps.mp4",
     prompt: "Deep space warp tunnel with glowing cyan and gold celestial dust, macro light particles accelerating at lightspeed",
   },
 ];
+
+
+
 
 export function ZentryHero() {
   const [currentIndex, setCurrentIndex] = useState(0);

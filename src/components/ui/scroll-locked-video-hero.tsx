@@ -26,6 +26,7 @@ export interface MetroHeroProps {
   style?: React.CSSProperties
 }
 
+// Cinematic subway/urban video — original confirmed working source
 const DEFAULT_VIDEO = "https://cdn.21st.dev/assets/mirror/21/21a77eac28eacbb7e142016eefeaa0b4a766619e51113629a3bc6df6af066c0f.mp4"
 const DEFAULT_SIGNATURE = { name: "Higgsfield Studio", url: "/ai/video" }
 const SANS = "var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
