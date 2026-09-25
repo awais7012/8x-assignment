@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { FeatureCard } from "@/components/home/FeatureCard";
 import { HeroCard } from "@/components/home/HeroCard";
 import { PromoPanel } from "@/components/home/PromoPanel";
+import { WorksWheel } from "@/components/ui/works-wheel";
 import { featureCards, heroCards, promo } from "@/lib/home";
 
 export default function HomePage() {
@@ -38,6 +39,11 @@ export default function HomePage() {
               Open the studio
             </Link>
           </div>
+        </section>
+
+        {/* Explore what's possible - 3D Works Wheel */}
+        <section aria-label="Explore what's possible" className="py-4 pb-16">
+          <WorksWheel />
         </section>
 
         <section aria-labelledby="featured-heading" className="pb-14">
