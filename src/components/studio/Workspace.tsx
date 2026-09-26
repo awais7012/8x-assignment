@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CREDIT_COST } from "@/lib/costs";
+import { DEMO_LIMITS } from "@/lib/demo-media";
 import type { GenerationDTO } from "@/lib/serialize";
-import { CreditMeter } from "./CreditMeter";
 import { GenerationResult } from "./GenerationResult";
 import { HistoryGrid } from "./HistoryGrid";
 import { PromptComposer } from "./PromptComposer";
@@ -12,26 +11,28 @@ import { WorkspaceTabs } from "./WorkspaceTabs";
 export function Workspace({
   type,
   initialGenerations,
-  initialCredits,
+  initialPrompt = "",
   placeholder,
   starterPrompts,
-  geminiConfigured,
 }: {
   type: "image" | "video";
   initialGenerations: GenerationDTO[];
-  initialCredits: number;
+  initialPrompt?: string;
   placeholder: string;
   starterPrompts: string[] | null;
-  geminiConfigured: boolean;
 }) {
   const [generations, setGenerations] = useState(initialGenerations);
-  const [credits, setCredits] = useState(initialCredits);
-  const [prompt, setPrompt] = useState("");
-  const [refImageUrl, setRefImageUrl] = useState("");
+  const [prompt, setPrompt] = useState(initialPrompt);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const cost = CREDIT_COST[type];
+  const submissionLimit = DEMO_LIMITS[type];
+  const submissionCount = generations.filter(
+    (generation) =>
+      generation.type === type &&
+      generation.provider === "demo-local" &&
+      generation.status === "complete",
+  ).length;
   const latest =
     generations.find(
       (generation) => generation.type === type && generation.status !== "processing",
@@ -51,12 +52,7 @@ export function Workspace({
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          type,
-          prompt: trimmed,
-          refImageUrl:
-            type === "image" ? refImageUrl.trim() || null : null,
-        }),
+        body: JSON.stringify({ type, prompt: trimmed }),
       });
 
       const body = await response.json().catch(() => ({}));
@@ -67,9 +63,6 @@ export function Workspace({
           generation,
           ...previous.filter((item) => item.id !== generation.id),
         ]);
-      }
-      if (typeof body.creditsBalance === "number") {
-        setCredits(body.creditsBalance);
       }
       if (!response.ok) {
         setError(body.error || "Generation failed. Please try again.");
@@ -92,8 +85,8 @@ export function Workspace({
           </h1>
           <p className="mt-1 text-sm text-muted">
             {type === "image"
-              ? "Text to image, with optional reference-image conditioning."
-              : "Text to video. Free capacity is limited — samples are labelled."}
+              ? "Local image samples for your demo submission. No external generation or credits."
+              : "Local video samples for your demo submission. No external generation or credits."}
           </p>
         </div>
         <WorkspaceTabs active={type} />
@@ -102,14 +95,12 @@ export function Workspace({
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
           <PromptComposer
-            type={type}
             prompt={prompt}
             onPromptChange={setPrompt}
-            refImageUrl={refImageUrl}
-            onRefImageUrlChange={setRefImageUrl}
             onSubmit={generate}
             busy={busy}
-            cost={cost}
+            submissionCount={submissionCount}
+            submissionLimit={submissionLimit}
             placeholder={placeholder}
             starterPrompts={starterPrompts}
             error={error}
@@ -117,13 +108,11 @@ export function Workspace({
           <GenerationResult
             generation={latest}
             busy={busy}
-            geminiConfigured={geminiConfigured}
             onRetry={generate}
           />
         </div>
 
         <aside className="space-y-4">
-          <CreditMeter credits={credits} cost={cost} />
           <section aria-labelledby="history-heading">
             <h2
               id="history-heading"
@@ -133,7 +122,6 @@ export function Workspace({
             </h2>
             <HistoryGrid
               generations={generations}
-              geminiConfigured={geminiConfigured}
             />
           </section>
         </aside>

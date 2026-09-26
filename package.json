@@ -13,6 +13,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.9.2",
     "@gsap/react": "^2.1.2",
+    "@prisma/adapter-neon": "^6.19.3",
     "@prisma/client": "^6.19.3",
     "@vercel/blob": "^2.8.0",
     "geist": "^1.3.1",

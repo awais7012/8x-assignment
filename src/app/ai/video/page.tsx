@@ -9,7 +9,11 @@ import { toGenerationDTO } from "@/lib/serialize";
 
 export const metadata = { title: "Video studio" };
 
-export default async function VideoStudioPage() {
+export default async function VideoStudioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ prompt?: string }>;
+}) {
   if (!clerkEnabled) return <AuthNotConfigured />;
 
   const viewer = await getViewer();
@@ -27,6 +31,9 @@ export default async function VideoStudioPage() {
   const defaults = defaultsForGoal(profile?.goal);
   const isDefaultTab = defaults.tab === "video";
 
+  const resolvedSearchParams = await searchParams;
+  const initialPrompt = resolvedSearchParams.prompt || "";
+
   return (
     <>
       <Navbar variant="studio" />
@@ -34,14 +41,13 @@ export default async function VideoStudioPage() {
         <Workspace
           type="video"
           initialGenerations={generations.map(toGenerationDTO)}
-          initialCredits={viewer.creditsBalance}
+          initialPrompt={initialPrompt}
           placeholder={
             isDefaultTab
               ? defaults.placeholder
               : "Describe the shot you want to see"
           }
           starterPrompts={null}
-          geminiConfigured={Boolean(process.env.GEMINI_API_KEY)}
         />
       </main>
     </>

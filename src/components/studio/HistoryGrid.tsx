@@ -1,4 +1,5 @@
 import { ArtPanel } from "@/components/ui/ArtPanel";
+import { VIDEO_SAMPLES } from "@/lib/demo-media";
 import type { GenerationDTO } from "@/lib/serialize";
 import { SAMPLE_ART, categorizePrompt } from "@/lib/video-samples";
 import { providerLabel } from "./GenerationResult";
@@ -22,10 +23,8 @@ function StatusPill({ status }: { status: string }) {
 
 export function HistoryGrid({
   generations,
-  geminiConfigured,
 }: {
   generations: GenerationDTO[];
-  geminiConfigured: boolean;
 }) {
   if (!generations.length) {
     return (
@@ -52,6 +51,14 @@ export function HistoryGrid({
                 loading="lazy"
                 className="h-full w-full object-cover"
               />
+            ) : generation.status === "complete" && generation.type === "video" ? (
+              <video
+                src={generation.resultUrl || VIDEO_SAMPLES[0]}
+                muted
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-cover"
+              />
             ) : (
               <ArtPanel
                 variant={
@@ -69,7 +76,7 @@ export function HistoryGrid({
               {generation.prompt}
             </p>
             <p className="text-[10px] tracking-[0.04em] text-dim uppercase">
-              {providerLabel(generation, geminiConfigured)}
+              {providerLabel(generation)}
             </p>
           </div>
         </li>

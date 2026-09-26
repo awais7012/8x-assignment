@@ -4,26 +4,22 @@ import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export function PromptComposer({
-  type,
   prompt,
   onPromptChange,
-  refImageUrl,
-  onRefImageUrlChange,
   onSubmit,
   busy,
-  cost,
+  submissionCount,
+  submissionLimit,
   placeholder,
   starterPrompts,
   error,
 }: {
-  type: "image" | "video";
   prompt: string;
   onPromptChange: (value: string) => void;
-  refImageUrl: string;
-  onRefImageUrlChange: (value: string) => void;
   onSubmit: () => void;
   busy: boolean;
-  cost: number;
+  submissionCount: number;
+  submissionLimit: number;
   placeholder: string;
   starterPrompts: string[] | null;
   error: string | null;
@@ -54,28 +50,6 @@ export function PromptComposer({
         className="mt-3 w-full resize-y rounded-card border border-line bg-bg px-4 py-3 text-[15px] text-ink placeholder:text-dim focus:border-line-strong focus:outline-none disabled:opacity-60"
       />
 
-      {type === "image" ? (
-        <div className="mt-4">
-          <label
-            htmlFor="refImageUrl"
-            className="text-[13px] font-medium text-muted"
-          >
-            Reference image URL{" "}
-            <span className="text-dim">(optional, image-to-image)</span>
-          </label>
-          <input
-            id="refImageUrl"
-            name="refImageUrl"
-            type="url"
-            value={refImageUrl}
-            onChange={(event) => onRefImageUrlChange(event.target.value)}
-            placeholder="https://…"
-            disabled={busy}
-            className="mt-2 w-full rounded-card border border-line bg-bg px-4 py-2.5 text-sm text-ink placeholder:text-dim focus:border-line-strong focus:outline-none disabled:opacity-60"
-          />
-        </div>
-      ) : null}
-
       {starterPrompts?.length ? (
         <div className="mt-4">
           <p className="text-[13px] text-muted">Not sure where to start?</p>
@@ -103,18 +77,16 @@ export function PromptComposer({
 
       <div className="mt-5 flex items-center justify-between gap-4">
         <p className="text-[12px] text-dim">
-          {type === "video"
-            ? "Video resolves to a labelled sample on the free tier."
-            : "Served by Gemini when configured, Pollinations otherwise."}
+          {submissionCount} of {submissionLimit} demo submissions used.
         </p>
         <Button
           type="submit"
-          disabled={busy}
+          disabled={busy || submissionCount >= submissionLimit}
           className="shrink-0"
           aria-busy={busy}
         >
           <Sparkles aria-hidden size={16} />
-          {busy ? "Generating…" : `Generate · ${cost}`}
+          {busy ? "Preparing…" : "Show demo sample"}
         </Button>
       </div>
     </form>

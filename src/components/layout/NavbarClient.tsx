@@ -162,7 +162,9 @@ export function NavbarClient({
   }, [open]);
 
   const items =
-    variant === "studio" ? [...primaryNav, studioNavExtra] : primaryNav;
+    variant === "studio"
+      ? [...primaryNav.filter((item) => item.href !== "/pricing"), studioNavExtra]
+      : primaryNav;
 
   const isActive = (href: string) => {
     const target = href.split("?")[0];

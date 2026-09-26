@@ -1,13 +1,7 @@
 import type { ArtVariant } from "@/components/ui/ArtPanel";
 
-/*
- * There is no free, no-signup, reliable text-to-video API. Pollinations' public
- * API documents image/text/audio only - its /video path returns an image, which
- * was verified rather than assumed. So video resolves to a curated sample,
- * labelled in the UI. Disclosed simulation, not a silent fake.
- */
 export const SAMPLE_DISCLOSURE =
-  "Sample output — live video generation runs on limited free capacity.";
+  "Local demo clip — this video was not generated from the prompt.";
 
 export type VideoCategory = "portrait" | "product" | "landscape" | "action";
 

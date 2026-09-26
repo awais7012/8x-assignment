@@ -1,7 +1,5 @@
-import { ArtPanel } from "@/components/ui/ArtPanel";
 import { cn } from "@/lib/cn";
 import {
-  SAMPLE_ART,
   SAMPLE_CAPTION,
   SAMPLE_DISCLOSURE,
   categorizePrompt,
@@ -14,9 +12,11 @@ import {
  */
 export function VideoSample({
   prompt,
+  src,
   className,
 }: {
   prompt: string;
+  src: string;
   className?: string;
 }) {
   const category = categorizePrompt(prompt);
@@ -28,9 +28,15 @@ export function VideoSample({
         className,
       )}
     >
-      <div className="absolute inset-0 animate-drift">
-        <ArtPanel variant={SAMPLE_ART[category]} dim={false} />
-      </div>
+      <video
+        src={src}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-label={SAMPLE_CAPTION[category]}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
       <div
         aria-hidden
         className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10"

@@ -9,7 +9,11 @@ import { toGenerationDTO } from "@/lib/serialize";
 
 export const metadata = { title: "Image studio" };
 
-export default async function ImageStudioPage() {
+export default async function ImageStudioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ prompt?: string }>;
+}) {
   if (!clerkEnabled) return <AuthNotConfigured />;
 
   const viewer = await getViewer();
@@ -27,6 +31,9 @@ export default async function ImageStudioPage() {
   const defaults = defaultsForGoal(profile?.goal);
   const isDefaultTab = defaults.tab === "image";
 
+  const resolvedSearchParams = await searchParams;
+  const initialPrompt = resolvedSearchParams.prompt || "";
+
   return (
     <>
       <Navbar variant="studio" />
@@ -34,14 +41,13 @@ export default async function ImageStudioPage() {
         <Workspace
           type="image"
           initialGenerations={generations.map(toGenerationDTO)}
-          initialCredits={viewer.creditsBalance}
+          initialPrompt={initialPrompt}
           placeholder={
             isDefaultTab
               ? defaults.placeholder
               : "Describe an image you want to see"
           }
           starterPrompts={isDefaultTab ? defaults.starterPrompts : null}
-          geminiConfigured={Boolean(process.env.GEMINI_API_KEY)}
         />
       </main>
     </>
