@@ -22,9 +22,12 @@ export interface MetroHeroProps {
   signature?: { name: string; url: string } | false
   /** Total input distance (px) needed to scrub the full video. Tune to taste. */
   scrubDistance?: number
+  onProgress?: (progress: number, targetProgress: number) => void
   className?: string
   style?: React.CSSProperties
 }
+
+export const WHEEL_REVEAL_START = 0.9;
 
 // Cinematic subway/urban video — original confirmed working source
 const DEFAULT_VIDEO = "https://cdn.21st.dev/assets/mirror/21/21a77eac28eacbb7e142016eefeaa0b4a766619e51113629a3bc6df6af066c0f.mp4"
@@ -45,6 +48,7 @@ export default function MetroHero({
   tagline = "Every door in the city is already open.",
   signature = DEFAULT_SIGNATURE,
   scrubDistance = 2400,
+  onProgress,
   className,
   style,
 }: MetroHeroProps) {
@@ -79,9 +83,16 @@ export default function MetroHero({
       setReady(true)
       if (reduceMotion) {
         video.currentTime = duration * 0.92
+        if (titleRef.current) titleRef.current.style.opacity = "0"
+        if (taglineRef.current) taglineRef.current.style.opacity = "0"
+        if (hintRef.current) hintRef.current.style.opacity = "0"
+        onProgress?.(1, 1)
       }
     }
     video.addEventListener("loadeddata", onLoadedData)
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      onLoadedData()
+    }
 
     const kickstartLoad = () => {
       const p = video.play()
@@ -118,6 +129,7 @@ export default function MetroHero({
       const next = clamp(targetProgress + deltaY / scrubDistance, 0, 1)
       targetProgress = next
       if (targetProgress > 0.001) hasStartedScrolling = true
+      onProgress?.(currentProgress, targetProgress)
       return true
     }
 
@@ -158,6 +170,7 @@ export default function MetroHero({
 
     function frame() {
       currentProgress += (targetProgress - currentProgress) * 0.18
+      onProgress?.(currentProgress, targetProgress)
 
       if (duration > 0) {
         seekTo(currentProgress * duration)
@@ -177,10 +190,15 @@ export default function MetroHero({
         hintRef.current.style.opacity = hasStartedScrolling ? "0" : "1"
       }
       if (taglineRef.current) {
-        const t = clamp((currentProgress - 0.82) / 0.18, 0, 1)
-        taglineRef.current.style.opacity = String(t)
-        taglineRef.current.style.transform = `translateY(${(1 - t) * 20}px) scale(${0.97 + t * 0.03})`
-        taglineRef.current.style.filter = `blur(${(1 - t) * 8}px)`
+        const fadeInEnd = onProgress ? WHEEL_REVEAL_START : 1
+        const fadeIn = clamp((currentProgress - 0.82) / (fadeInEnd - 0.82), 0, 1)
+        const reveal = onProgress
+          ? clamp((currentProgress - WHEEL_REVEAL_START) / (1 - WHEEL_REVEAL_START), 0, 1)
+          : 0
+        const opacity = onProgress ? fadeIn * (1 - reveal) : fadeIn
+        taglineRef.current.style.opacity = String(opacity)
+        taglineRef.current.style.transform = `translateY(${(1 - opacity) * 20}px) scale(${0.97 + opacity * 0.03})`
+        taglineRef.current.style.filter = `blur(${(1 - opacity) * 8}px)`
       }
       if (progressBarRef.current) {
         progressBarRef.current.style.transform = `scaleX(${currentProgress})`
