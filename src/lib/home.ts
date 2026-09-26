@@ -94,7 +94,7 @@ export const featureCards: FeatureCard[] = [
     description: "Turn Claude into a creative engine",
     icon: icons.terminal,
     art: "agent",
-    image: "/art/feat-mcp.jpg",
+    image: "/art/feat-cinema.jpg",
     href: "/mcp",
   },
   {
